@@ -1,26 +1,26 @@
 version: '3.2'
 services:
-  postgres:
+  db:
     image: postgres:latest
     restart: always
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
      - ./postgres/data:/var/lib/postgresql/data
 
-  app:
+  api:
     build: .
     ports:
       - "5000:5000"
     restart: on-failure
     depends_on:
-      - postgres
+      - db
     env_file: 
       - ./.env
     volumes:
-      - ./src:/app/src
-    command: python src/index.py
+      - ./:/app
+    command: python index.py
