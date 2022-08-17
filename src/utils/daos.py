@@ -3,13 +3,32 @@ from app import db
 import logging
 
 
-class UserDAO:
+class ModelDAO:
     def __init__(self, model):
         self.model = model
 
     def get_new(self):
         return self.model()
 
+    def get_all(self):
+        item = db.session.query(self.model).all()
+        return item
+
+    def get_by_id(self, item_id):
+        try:
+            return db.session.query(self.model).filter_by(id=item_id).one()
+        except NoResultFound:
+            return None
+
+    def del_by_id(self, item_id):
+        item = db.session.query(self.model).get_or_404(item_id, 'Not Found')
+        db.session.delete(item)
+        db.session.commit()
+
+        return item
+
+
+class UserDAO(ModelDAO):
     def create_user(self, data):
         result = None
 
@@ -28,20 +47,3 @@ class UserDAO:
             logging.error(exception)
 
         return result
-
-    def get_all(self):
-        users = db.session.query(self.model).all()
-        return users
-
-    def get_by_id(self, user_id):
-        try:
-            return db.session.query(self.model).filter_by(id=user_id).one()
-        except NoResultFound:
-            return None
-
-    def del_by_id(self, user_id):
-        user = db.session.query(self.model).get_or_404(user_id, 'Not Found')
-        db.session.delete(user)
-        db.session.commit()
-
-        return user

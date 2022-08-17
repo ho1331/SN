@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class User(db.Model):
-    __tablename__ = "users"
+    __tablename__ = "user"
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String(30), unique=False, nullable=False)
     username = db.Column(db.String(30), unique=True, nullable=False)
@@ -16,6 +16,18 @@ class User(db.Model):
     password = db.Column(db.String(100), unique=True, nullable=False)
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+
+    posts = db.relationship("Post", backref="user")
+    liked = db.relationship('Like', secondary="likes", backref='user')
+    disliked = db.relationship('DisLike', secondary="dislikes", backref='user')
+    # liked = db.relationship(
+    #     'Like',
+    #     foreign_keys='Like.users_id',
+    #     backref='users', lazy='dynamic')
+    # disliked = db.relationship(
+    #     'DisLike',
+    #     foreign_keys='DisLike.users_id',
+    #     backref='users', lazy='dynamic')
 
     @validates("email")
     def validate_rating(self, key, field):
