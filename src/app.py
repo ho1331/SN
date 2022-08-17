@@ -8,6 +8,7 @@ from config import Config
 db = SQLAlchemy()
 migrate = Migrate()
 
+
 def create_app():
     """
     create app params

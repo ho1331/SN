@@ -1,6 +1,7 @@
 from sqlalchemy.exc import NoResultFound
-from app import db
+from src.app import db
 import logging
+from src.models.users import User
 
 
 class ModelDAO:
@@ -13,7 +14,7 @@ class ModelDAO:
     def get_all(self):
         item = db.session.query(self.model).all()
         return item
-
+    
     def get_by_id(self, item_id):
         try:
             return db.session.query(self.model).filter_by(id=item_id).one()
@@ -41,9 +42,19 @@ class UserDAO(ModelDAO):
 
             db.session.add(user)
             db.session.commit()
-            result = user.id
+            result = user
 
         except Exception as exception:
             logging.error(exception)
 
         return result
+
+    def get_by_email(self, value):
+        try:
+            return db.session.query(self.model).filter_by(email=value).one()
+        except NoResultFound:
+            return None
+
+
+
+user_dao = UserDAO(User)
