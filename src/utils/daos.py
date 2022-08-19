@@ -1,10 +1,12 @@
 import logging
+from datetime import datetime
 
 from sqlalchemy.exc import NoResultFound
 
 from src.app import db
 from src.models.likes import Like
 from src.models.posts import Post
+from src.models.stats import Stats
 from src.models.users import User
 
 
@@ -116,6 +118,43 @@ class LikeDAO(ModelDAO):
         return result
 
 
+class StatsDAO(ModelDAO):
+    def update_stat(self, user_id, login=True):
+        result = None
+
+        try:
+            stat = self.get_new()
+            exist = db.session.query(self.model).filter_by(
+                user_id=user_id).first()
+
+            if exist and login:
+                exist.logged = datetime.now()
+                exist.last_request_at = datetime.now()
+                db.session.add(exist)
+                db.session.commit()
+                return
+            elif exist and not login:
+                exist.last_request_at = datetime.now()
+                db.session.add(exist)
+                db.session.commit()
+                return
+
+            stat.user_id = user_id
+            stat.logged = datetime.now()
+            stat.last_request_at = datetime.now()
+
+            db.session.add(stat)
+            db.session.commit()
+            result = stat
+
+        except Exception as exception:
+            logging.error(exception)
+            db.session.rollback()
+
+        return result
+
+
 user_dao = UserDAO(User)
 post_dao = PostDAO(Post)
 like_dao = LikeDAO(Like)
+stat_dao = StatsDAO(Stats)

@@ -1,6 +1,7 @@
 from flask import jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource
+
 from src.models.likes import LikeSchema
 from src.utils.daos import like_dao, user_dao
 
@@ -28,7 +29,7 @@ class LikeAPI(Resource):
             return make_response(
                 jsonify(
                     message='You disliked it',
-                    status_code=201), 201
+                    status_code=204), 204
             )
 
     @jwt_required()
@@ -38,6 +39,6 @@ class LikeAPI(Resource):
             return make_response(
                 jsonify(
                     message='Likes doesn\'t exist.',
-                    status_code=202), 202
+                    status_code=404), 404
             )
         return like_schema.dump(likes, many=True)

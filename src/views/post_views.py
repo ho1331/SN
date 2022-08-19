@@ -1,6 +1,7 @@
 from flask import jsonify, make_response, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_restx import Namespace, Resource
+
 from src.models.posts import PostSchema
 from src.utils.daos import post_dao, user_dao
 
@@ -31,7 +32,7 @@ class PostAPI(Resource):
             return make_response(
                 jsonify(
                     message='Post doesn\'t exist.',
-                    status_code=202), 202
+                    status_code=404), 404
             )
 
         return post_schema.dump(post)
@@ -51,5 +52,5 @@ class PostAPI(Resource):
         return make_response(
             jsonify(
                 message='Post successfully deleted',
-                status_code=200), 200
+                status_code=204), 204
         )

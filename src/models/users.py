@@ -20,6 +20,7 @@ class User(db.Model):
         'Like',
         foreign_keys='Like.user_id',
         backref='user', lazy='dynamic')
+    stats = db.relationship('Stats', backref='user', cascade='all,delete', lazy=True, uselist=False)
 
     @validates('email')
     def validate_rating(self, key, field):
