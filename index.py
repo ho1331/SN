@@ -1,9 +1,5 @@
 from src.app import app
-from src.models.likes import *
-from src.models.posts import *
-from src.models.users import *
-from src.views import api   
-
+from src.views import api
 
 api.init_app(app)
 

@@ -1,6 +1,12 @@
-from sqlalchemy.exc import NoResultFound
-from src.app import db
 import logging
+from datetime import datetime
+
+from sqlalchemy.exc import NoResultFound
+
+from src.app import db
+from src.models.likes import Like
+from src.models.posts import Post
+from src.models.stats import Stats
 from src.models.users import User
 
 
@@ -14,10 +20,10 @@ class ModelDAO:
     def get_all(self):
         item = db.session.query(self.model).all()
         return item
-    
+
     def get_by_id(self, item_id):
         try:
-            return db.session.query(self.model).filter_by(id=item_id).one()
+            return db.session.query(self.model).filter_by(id=item_id).first()
         except NoResultFound:
             return None
 
@@ -46,15 +52,109 @@ class UserDAO(ModelDAO):
 
         except Exception as exception:
             logging.error(exception)
+            db.session.rollback()
 
         return result
 
-    def get_by_email(self, value):
+    def get_by_email(self, email):
         try:
-            return db.session.query(self.model).filter_by(email=value).one()
+            return db.session.query(self.model).filter_by(email=email).first()
+        except NoResultFound:
+            return None
+
+    def get_by_username(self, username):
+        try:
+            return db.session.query(self.model).filter_by(username=username).first()
         except NoResultFound:
             return None
 
 
+class PostDAO(ModelDAO):
+    def create_post(self, data, user_id):
+        result = None
+
+        try:
+            post = self.get_new()
+            post.title = data['title']
+            post.user_id = user_id
+
+            db.session.add(post)
+            db.session.commit()
+            result = post
+
+        except Exception as exception:
+            logging.error(exception)
+            db.session.rollback()
+
+        return result
+
+
+class LikeDAO(ModelDAO):
+    def like(self, data, user_id):
+        result = None
+
+        try:
+            like = self.get_new()
+            exist = db.session.query(self.model).filter_by(
+                user_id=user_id,
+                post_id=data['post_id']).first()
+
+            if exist:
+                db.session.delete(exist)
+                db.session.commit()
+                return
+
+            like.post_id = data['post_id']
+            like.user_id = user_id
+
+            db.session.add(like)
+            db.session.commit()
+            result = like
+
+        except Exception as exception:
+            logging.error(exception)
+            db.session.rollback()
+
+        return result
+
+
+class StatsDAO(ModelDAO):
+    def update_stat(self, user_id, login=True):
+        result = None
+
+        try:
+            stat = self.get_new()
+            exist = db.session.query(self.model).filter_by(
+                user_id=user_id).first()
+
+            if exist and login:
+                exist.logged = datetime.now()
+                exist.last_request_at = datetime.now()
+                db.session.add(exist)
+                db.session.commit()
+                return
+            elif exist and not login:
+                exist.last_request_at = datetime.now()
+                db.session.add(exist)
+                db.session.commit()
+                return
+
+            stat.user_id = user_id
+            stat.logged = datetime.now()
+            stat.last_request_at = datetime.now()
+
+            db.session.add(stat)
+            db.session.commit()
+            result = stat
+
+        except Exception as exception:
+            logging.error(exception)
+            db.session.rollback()
+
+        return result
+
 
 user_dao = UserDAO(User)
+post_dao = PostDAO(Post)
+like_dao = LikeDAO(Like)
+stat_dao = StatsDAO(Stats)

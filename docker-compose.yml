@@ -24,3 +24,6 @@ services:
     volumes:
       - ./:/app
     command: python index.py
+    container_name: flask_app
+    # stdin_open: true
+    # tty: true
