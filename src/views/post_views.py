@@ -52,5 +52,5 @@ class PostAPI(Resource):
         return make_response(
             jsonify(
                 message='Post successfully deleted',
-                status_code=204), 204
+                status_code=200), 200
         )

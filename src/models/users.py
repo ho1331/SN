@@ -24,24 +24,15 @@ class User(db.Model):
 
     @validates('email')
     def validate_rating(self, key, field):
-        """
-        Check email input
-        """
         if '@' in field:
             return field
         else:
             raise AssertionError('Bad field : \'email\'')
 
     def set_password(self, password):
-        """
-        set hash password
-        """
         self.password = generate_password_hash(password, method='sha256')
 
     def check_password(self, password):
-        """
-        check password
-        """
         return check_password_hash(self.password, password)
 
 

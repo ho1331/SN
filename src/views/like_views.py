@@ -29,7 +29,7 @@ class LikeAPI(Resource):
             return make_response(
                 jsonify(
                     message='You disliked it',
-                    status_code=204), 204
+                    status_code=200), 200
             )
 
     @jwt_required()
