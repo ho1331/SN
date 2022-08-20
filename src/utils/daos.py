@@ -24,8 +24,8 @@ class ModelDAO:
     def get_by_id(self, item_id):
         try:
             return db.session.query(self.model).filter_by(id=item_id).first()
-        except NoResultFound:
-            return None
+        except NoResultFound as e:
+            raise e
 
     def del_by_id(self, item_id):
         item = db.session.query(self.model).get_or_404(item_id, 'Not Found')
@@ -59,14 +59,8 @@ class UserDAO(ModelDAO):
     def get_by_email(self, email):
         try:
             return db.session.query(self.model).filter_by(email=email).first()
-        except NoResultFound:
-            return None
-
-    def get_by_username(self, username):
-        try:
-            return db.session.query(self.model).filter_by(username=username).first()
-        except NoResultFound:
-            return None
+        except NoResultFound as e:
+            raise e
 
 
 class PostDAO(ModelDAO):
@@ -106,6 +100,7 @@ class LikeDAO(ModelDAO):
 
             like.post_id = data['post_id']
             like.user_id = user_id
+            like.date = datetime.now()
 
             db.session.add(like)
             db.session.commit()
@@ -117,8 +112,25 @@ class LikeDAO(ModelDAO):
 
         return result
 
+    def get_like_stat(self, start_date=None, end_date=None):
+        result = None
 
-class StatsDAO(ModelDAO):
+        try:
+            if start_date and end_date:
+                exist = db.session.query(self.model).filter(self.model.date.between(start_date, end_date)).all()
+            elif start_date:
+                exist = db.session.query(self.model).filter(self.model.date >= start_date).all()
+            else:
+                exist = db.session.query(self.model).filter(self.model.date <= end_date).all()
+            result = exist
+
+        except Exception as exception:
+            logging.error(exception)
+
+        return result
+
+
+class UserStatsDAO(ModelDAO):
     def update_stat(self, user_id, login=True):
         result = None
 
@@ -157,4 +169,4 @@ class StatsDAO(ModelDAO):
 user_dao = UserDAO(User)
 post_dao = PostDAO(Post)
 like_dao = LikeDAO(Like)
-stat_dao = StatsDAO(Stats)
+user_stat_dao = UserStatsDAO(Stats)
