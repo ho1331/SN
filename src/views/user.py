@@ -30,5 +30,5 @@ class UserAPI(Resource):
         return make_response(
             jsonify(
                 message='User successfully deleted',
-                status_code=204), 204
+                status_code=200), 200
         )

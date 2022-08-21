@@ -5,12 +5,11 @@ from flask_restx import Api
 from src.app import app
 from src.utils.daos import user_dao, user_stat_dao
 
-from .like_views import api as like
-from .login import api as lg
-from .post_views import api as posts
-from .signup import api as sinup
-from .stats_views import api as stats
-from .user_views import api as users
+from .auth import api as oauth
+from .like import api as likes
+from .post import api as posts
+from .stat import api as stats
+from .user import api as users
 
 api = Api(
     title='Social test API',
@@ -18,11 +17,10 @@ api = Api(
     doc='/swagger'
 )
 
+api.add_namespace(oauth, path='/api')
 api.add_namespace(users, path='/api/user')
-api.add_namespace(sinup, path='/api/signup')
 api.add_namespace(posts, path='/api/post')
-api.add_namespace(lg, path='/api/login')
-api.add_namespace(like, path='/api/like')
+api.add_namespace(likes, path='/api/like')
 api.add_namespace(stats, path='/api/analytics')
 
 
@@ -31,6 +29,8 @@ def after_request_callback(response):
     if 'signup' in request.path:
         pass
     elif 'swagger' in request.path:
+        pass
+    elif 'user' in request.path and request.method == 'DELETE':
         pass
     elif 'login' not in request.path:
         current_user = verify_jwt_in_request()
