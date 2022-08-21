@@ -119,12 +119,21 @@ class LikeDAO(ModelDAO):
         result = None
 
         try:
+            base_query = db.session.query(
+                    self.model.date, func.count(self.model.date)
+                    .label('likes_count'))
             if start_date and end_date:
-                exist = db.session.query(self.model.date, func.count(self.model.date).label('likes_count')).group_by(self.model.date).all()
+                exist = (base_query.filter(
+                    self.model.date.between(start_date, end_date))
+                    .group_by(self.model.date).all())
             elif start_date:
-                exist = db.session.query(self.model).filter(self.model.date >= start_date).all()
+                exist = (base_query.filter(
+                    self.model.date >= start_date)
+                    .group_by(self.model.date).all())
             else:
-                exist = db.session.query(self.model).filter(self.model.date <= end_date).all()
+                exist = (base_query.filter(
+                    self.model.date <= end_date)
+                    .group_by(self.model.date).all())
             result = exist
 
         except Exception as e:
