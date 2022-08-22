@@ -7,7 +7,6 @@ load_dotenv()
 
 
 class Config:
-    """Set Flask config variables."""
     # jwt
     JWT_SECRET_KEY = getenv('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
