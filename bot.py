@@ -2,9 +2,7 @@ import configparser
 import pathlib
 import uuid
 from random import choice, randrange
-
-from src.app import app
-from src.utils.daos import like_dao, post_dao, user_dao
+import requests
 
 CONFIG_FILE = 'bot_config.ini'
 
@@ -37,24 +35,52 @@ def generate_post_data():
     return random_data
 
 
+def base_url(host=None):
+    if host:
+        url = f'http://{host}:5000/api'
+    else:
+        url = 'http://localhost:5000/api'
+    return url
+
+
+def user_login(params):
+    url = base_url()
+    response = requests.post(f'{url}/login', json=params)
+    token = response.json().get('access_token')
+
+    return f'Bearer {token}'
+
+
 def generate_users(number_of_users):
+    url = base_url()
+    auth_list = []
     for _ in range(number_of_users):
         user_data = generate_user_data()
-        user_dao.create_user(user_data)
+        requests.post(f'{url}/signup', json=user_data)
+        user_auth_params = {x: user_data[x] for x in ['email', 'password']}
+        auth_list.append(user_auth_params)
+
+    return auth_list
 
 
-def generate_posts(users, number_of_posts):
-    for user in users:
+def generate_posts(users_data, number_of_posts):
+    url = base_url()
+    for user_data in users_data:
+        token = user_login(user_data)
+        headers = {"Authorization": token}
         for _ in range(randrange(1, number_of_posts + 1)):
             post_data = generate_post_data()
-            post_dao.create_post(post_data, user.id)
+            requests.post(f'{url}/post', json=post_data, headers=headers)
 
 
-def generate_likes(users, posts, number_of_likes):
-    for user in users:
+def generate_likes(users_data, num_posts, number_of_likes):
+    url = base_url()
+    for user_data in users_data:
+        token = user_login(user_data)
+        headers = {"Authorization": token}
         for _ in range(randrange(1, number_of_likes + 1)):
-            post = choice(posts)
-            like_dao.like({'post_id': post.id}, user.id)
+            like_data = {'post_id': randrange(1, num_posts+1)}
+            requests.post(f'{url}/like', json=like_data, headers=headers)
 
 
 def random_activity():
@@ -63,12 +89,9 @@ def random_activity():
     num_posts = config['POST']['max_posts_per_user']
     num_likes = config['LIKE']['max_likes_per_user']
 
-    with app.app_context():
-        generate_users(int(num_users))
-        users = user_dao.get_all()
-        generate_posts(users, int(num_posts))
-        posts = post_dao.get_all()
-        generate_likes(users, posts, int(num_likes))
+    users_data = generate_users(int(num_users))
+    generate_posts(users_data, int(num_posts))
+    generate_likes(users_data, int(num_posts), int(num_likes))
 
 
 def run_bot():
