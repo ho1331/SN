@@ -16,10 +16,7 @@ class User(db.Model):
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     posts = db.relationship('Post', backref='user')
-    liked = db.relationship(
-        'Like',
-        foreign_keys='Like.user_id',
-        backref='user', lazy='dynamic')
+    liked = db.relationship('Like', backref='user', lazy='dynamic')
     stats = db.relationship('Stats', backref='user', cascade='all,delete', lazy=True, uselist=False)
 
     @validates('email')

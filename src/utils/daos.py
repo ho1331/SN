@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 
+from sqlalchemy import func
 from sqlalchemy.exc import NoResultFound
 
 from src.app import db
@@ -42,7 +43,6 @@ class UserDAO(ModelDAO):
         try:
             user = self.get_new()
             user.name = data['name']
-            user.username = data['username']
             user.email = data['email']
             user.set_password(data['password'])
 
@@ -53,6 +53,7 @@ class UserDAO(ModelDAO):
         except Exception as exception:
             logging.error(exception)
             db.session.rollback()
+            raise exception
 
         return result
 
@@ -76,9 +77,10 @@ class PostDAO(ModelDAO):
             db.session.commit()
             result = post
 
-        except Exception as exception:
-            logging.error(exception)
+        except Exception as e:
+            logging.error(e)
             db.session.rollback()
+            raise e
 
         return result
 
@@ -106,9 +108,10 @@ class LikeDAO(ModelDAO):
             db.session.commit()
             result = like
 
-        except Exception as exception:
-            logging.error(exception)
+        except Exception as e:
+            logging.error(e)
             db.session.rollback()
+            raise e
 
         return result
 
@@ -116,16 +119,26 @@ class LikeDAO(ModelDAO):
         result = None
 
         try:
+            base_query = db.session.query(
+                    self.model.date, func.count(self.model.date)
+                    .label('likes_count'))
             if start_date and end_date:
-                exist = db.session.query(self.model).filter(self.model.date.between(start_date, end_date)).all()
+                exist = (base_query.filter(
+                    self.model.date.between(start_date, end_date))
+                    .group_by(self.model.date).all())
             elif start_date:
-                exist = db.session.query(self.model).filter(self.model.date >= start_date).all()
+                exist = (base_query.filter(
+                    self.model.date >= start_date)
+                    .group_by(self.model.date).all())
             else:
-                exist = db.session.query(self.model).filter(self.model.date <= end_date).all()
+                exist = (base_query.filter(
+                    self.model.date <= end_date)
+                    .group_by(self.model.date).all())
             result = exist
 
-        except Exception as exception:
-            logging.error(exception)
+        except Exception as e:
+            logging.error(e)
+            raise e
 
         return result
 
@@ -159,9 +172,10 @@ class UserStatsDAO(ModelDAO):
             db.session.commit()
             result = stat
 
-        except Exception as exception:
-            logging.error(exception)
+        except Exception as e:
+            logging.error(e)
             db.session.rollback()
+            raise e
 
         return result
 

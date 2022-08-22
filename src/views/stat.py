@@ -2,13 +2,14 @@ from flask import jsonify, make_response, request
 from flask_jwt_extended import jwt_required
 from flask_restx import Namespace, Resource
 
-from src.models.likes import LikeSchema
+from src.models.likes import LikeCountSchema, LikeSchema
 from src.models.stats import StatsSchema
 from src.utils.daos import like_dao, user_stat_dao
 
 api = Namespace('stats', description='Analytics dashboard')
 stats_schema = StatsSchema()
 like_schema = LikeSchema()
+like_c_schema = LikeCountSchema()
 
 
 @api.route('/users')
@@ -38,4 +39,5 @@ class LikeStatsAPI(Resource):
                     message='Not Found',
                     status_code=404), 404
             )
-        return like_schema.dump(likes_stat, many=True)
+        return like_c_schema.dump(likes_stat, many=True)
+        # return jsonify(likes_stat)
