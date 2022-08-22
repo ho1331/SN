@@ -15,4 +15,9 @@
         http://localhost/swagger
 
 ### Automated bot
-        docker-compose exec api python bot.py
+* Bot config file: bot_config.ini
+* Bot logic: bot.py
+```
+Bot logic is completely independent from the application and simulates the work of the client
+```
+* The requests module must be installed for the bot to work

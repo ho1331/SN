@@ -2,6 +2,7 @@ import configparser
 import pathlib
 import uuid
 from random import choice, randrange
+
 import requests
 
 CONFIG_FILE = 'bot_config.ini'
@@ -65,21 +66,25 @@ def generate_users(number_of_users):
 
 def generate_posts(users_data, number_of_posts):
     url = base_url()
+    post_list = []
     for user_data in users_data:
         token = user_login(user_data)
         headers = {"Authorization": token}
         for _ in range(randrange(1, number_of_posts + 1)):
             post_data = generate_post_data()
-            requests.post(f'{url}/post', json=post_data, headers=headers)
+            response = requests.post(f'{url}/post', json=post_data, headers=headers)
+            post_list.append(response.json().get('post_id'))
+
+    return post_list
 
 
-def generate_likes(users_data, num_posts, number_of_likes):
+def generate_likes(users_data, posts_data, number_of_likes):
     url = base_url()
     for user_data in users_data:
         token = user_login(user_data)
         headers = {"Authorization": token}
         for _ in range(randrange(1, number_of_likes + 1)):
-            like_data = {'post_id': randrange(1, num_posts+1)}
+            like_data = {'post_id': choice(posts_data)}
             requests.post(f'{url}/like', json=like_data, headers=headers)
 
 
@@ -90,8 +95,8 @@ def random_activity():
     num_likes = config['LIKE']['max_likes_per_user']
 
     users_data = generate_users(int(num_users))
-    generate_posts(users_data, int(num_posts))
-    generate_likes(users_data, int(num_posts), int(num_likes))
+    posts_data = generate_posts(users_data, int(num_posts))
+    generate_likes(users_data, posts_data, int(num_likes))
 
 
 def run_bot():
