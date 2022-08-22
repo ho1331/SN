@@ -17,11 +17,12 @@ class PostAPI(Resource):
         current_user = get_jwt_identity()
 
         user = user_dao.get_by_email(current_user)
-        post_dao.create_post(data, user.id)
+        post = post_dao.create_post(data, user.id)
 
         return make_response(
             jsonify(
                 message='Successfully created',
+                post_id=post.id,
                 status_code=201), 201
         )
 
