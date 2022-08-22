@@ -13,3 +13,6 @@
 ### Base API documentation
         
         http://localhost/swagger
+
+### Automated bot
+        docker-compose exec api python bot.py
